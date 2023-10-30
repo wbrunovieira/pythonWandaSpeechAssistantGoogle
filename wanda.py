@@ -1,5 +1,5 @@
 import speech_recognition as sr
-
+from subprocess import call
 
 hotword = "ata"
 
@@ -20,12 +20,18 @@ def monitora_audio():
                 
                 if hotword in trigger:
                     print("Comando reconhecido ", trigger)
+                    responde('feedback')
                     ###executa os comandos
                     break
             except sr.UnknownValueError:
                 print("Google Cloud Speech could not understand audio")
             except sr.RequestError as e:
                 print("Could not request results from Google Cloud Speech service; {0}".format(e))
-            
-monitora_audio()
+    return trigger
+def responde(arquivo):
+    call (["afplay", "audios/" + arquivo +".mp3"])
+    
+def main():
+    monitora_audio()            
+main()
    
