@@ -1,6 +1,7 @@
 import speech_recognition as sr
 from subprocess import call
-
+from requests import requests
+from bs4 import BeautifulSoup
 hotword = "ata"
 
 import os
@@ -21,7 +22,7 @@ def monitora_audio():
                 if hotword in trigger:
                     print("Comando reconhecido ", trigger)
                     responde('feedback')
-                    ###executa os comandos
+                    executa_comandos(trigger)
                     break
             except sr.UnknownValueError:
                 print("Google Cloud Speech could not understand audio")
@@ -30,8 +31,20 @@ def monitora_audio():
     return trigger
 def responde(arquivo):
     call (["afplay", "audios/" + arquivo +".mp3"])
-    
+
+def executa_comandos():
+    if "noticias" in trigger:
+        ultimas_noticias()   
+        
+def ultimas_noticias():
+     site = requests.get('https://news.google.com/rss?hl=pt-BR&gl=BR&ceid=BR:pt')
+     noticias = BeautifulSoup(site.text, 'html.parser')
+     for item in noticias.findAll('item')[:5]:
+         mensagem = item.title.text
+         print(item.title.text)
+     print(noticias.prettify())
 def main():
-    monitora_audio()            
+    monitora_audio()
+                
 main()
    
