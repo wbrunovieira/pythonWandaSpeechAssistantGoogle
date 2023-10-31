@@ -1,8 +1,11 @@
 import speech_recognition as sr
 from subprocess import call
-from requests import requests
+from requests import get
+from gtts import gTTS
 from bs4 import BeautifulSoup
-hotword = "ata"
+
+feedback = "feedback"
+hotword = "gata"
 
 import os
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "wanda-python-assistent-be1eab582aff.json"
@@ -21,9 +24,10 @@ def monitora_audio():
                 
                 if hotword in trigger:
                     print("Comando reconhecido ", trigger)
-                    responde('feedback')
+                    responde(feedback)
                     executa_comandos(trigger)
                     break
+                   
             except sr.UnknownValueError:
                 print("Google Cloud Speech could not understand audio")
             except sr.RequestError as e:
@@ -31,20 +35,33 @@ def monitora_audio():
     return trigger
 def responde(arquivo):
     call (["afplay", "audios/" + arquivo +".mp3"])
+def cria_audio(mensagem):
+    print(mensagem)
+    tts = gTTS(mensagem, lang='pt-br')
+    tts.save('audios/mensagem.mp3')
 
-def executa_comandos():
-    if "noticias" in trigger:
+    call (['afplay', 'audios/mensagem.mp3'])
+def executa_comandos(trigger):
+    print('Executando Comandos')
+    if "notícias" in trigger:
         ultimas_noticias()   
-        
+    else:
+        mensagem = trigger.strip(hotword)
+        cria_audio(mensagem)
+        print('Comando Invalido', mensagem) 
+        responde('comando_invalido')
+                   
 def ultimas_noticias():
-     site = requests.get('https://news.google.com/rss?hl=pt-BR&gl=BR&ceid=BR:pt')
+     print('Buscando notícias')
+     site = get('https://news.google.com/rss?hl=pt-BR&gl=BR&ceid=BR:pt')
      noticias = BeautifulSoup(site.text, 'html.parser')
      for item in noticias.findAll('item')[:5]:
          mensagem = item.title.text
-         print(item.title.text)
-     print(noticias.prettify())
+         cria_audio(mensagem)
+     
 def main():
-    monitora_audio()
+    while True:
+        monitora_audio()
                 
 main()
-   
+  
