@@ -3,6 +3,7 @@ from subprocess import call
 from requests import get
 from gtts import gTTS
 from bs4 import BeautifulSoup
+from google.cloud import texttospeech
 
 feedback = "feedback"
 hotword = "gata"
@@ -36,11 +37,36 @@ def monitora_audio():
 def responde(arquivo):
     call (["afplay", "audios/" + arquivo +".mp3"])
 def cria_audio(mensagem):
-    print(mensagem)
-    tts = gTTS(mensagem, lang='pt-br')
-    tts.save('audios/mensagem.mp3')
+    # Inicializa o cliente
+    client = texttospeech.TextToSpeechClient()
+    print('iniciou o client')
+    # Configura o texto e a voz
+    input_text = texttospeech.SynthesisInput(text=mensagem)  # Correção aqui
+    voice = texttospeech.VoiceSelectionParams(
+        language_code="pt-BR",
+        name="pt-BR-Neural2-C",
+        ssml_gender=texttospeech.SsmlVoiceGender.FEMALE,
+    )
+    print('configurou o texto e voz')
 
-    call (['afplay', 'audios/mensagem.mp3'])
+    # Configura o tipo de áudio
+    audio_config = texttospeech.AudioConfig(
+        audio_encoding=texttospeech.AudioEncoding.MP3
+    )
+    print('configurou o tipo de audio')
+
+    # Realiza a síntese de fala
+    response = client.synthesize_speech(
+        input=input_text, voice=voice, audio_config=audio_config
+    )
+    print('configurou sintese da fala')
+    # Salva o áudio
+    if not os.path.exists('audios'):
+        os.makedirs('audios')
+    with open("audios/mensagem.mp3", "wb") as out:
+        out.write(response.audio_content)
+    print('salvou o audio')
+    responde('mensagem')
 def executa_comandos(trigger):
     print('Executando Comandos')
     if "notícias" in trigger:
@@ -54,10 +80,13 @@ def executa_comandos(trigger):
 def ultimas_noticias():
      print('Buscando notícias')
      site = get('https://news.google.com/rss?hl=pt-BR&gl=BR&ceid=BR:pt')
-     noticias = BeautifulSoup(site.text, 'html.parser')
+     noticias = BeautifulSoup(markup=site.text, features='lxml-xml')
+
+
      for item in noticias.findAll('item')[:5]:
          mensagem = item.title.text
          cria_audio(mensagem)
+         print(mensagem)
      
 def main():
     while True:
