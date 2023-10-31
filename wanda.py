@@ -5,6 +5,7 @@ from gtts import gTTS
 from bs4 import BeautifulSoup
 from google.cloud import texttospeech
 
+
 feedback = "feedback"
 hotword = "gata"
 
