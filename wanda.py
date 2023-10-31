@@ -4,6 +4,7 @@ from requests import get
 from gtts import gTTS
 from bs4 import BeautifulSoup
 from google.cloud import texttospeech
+import webbrowser as browser
 
 
 feedback = "feedback"
@@ -71,7 +72,13 @@ def cria_audio(mensagem):
 def executa_comandos(trigger):
     print('Executando Comandos')
     if "notícias" in trigger:
-        ultimas_noticias()   
+        ultimas_noticias()
+        
+    elif "toca" in trigger and "nice" in trigger:
+        playlists("nice")
+    elif "toca" in trigger and "clássica" in trigger:
+        playlists("nice")
+            
     else:
         mensagem = trigger.strip(hotword)
         cria_audio(mensagem)
@@ -88,7 +95,11 @@ def ultimas_noticias():
          mensagem = item.title.text
          cria_audio(mensagem)
          print(mensagem)
-     
+def playlists(album):
+    if album == 'nice':
+        browser.open('https://open.spotify.com/track/18GiV1BaXzPVYpp9rmOg0E?si=2b4919a6741445cb') 
+    elif album == 'clássica':
+        browser.open('https://open.spotify.com/track/2qhB0MjxHZV95QrORat7xe?si=3df219fa831643e6')
 def main():
     while True:
         monitora_audio()
