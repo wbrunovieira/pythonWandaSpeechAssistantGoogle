@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup
 from google.cloud import texttospeech
 import webbrowser as browser
 import json
+import math
+
 
 
 feedback = "feedback"
@@ -79,7 +81,11 @@ def executa_comandos(trigger):
         playlists("nice")
     elif "toca" in trigger and "clássica" in trigger:
         playlists("nice")
-            
+    elif "tempo agora" in trigger:
+        previsao_do_tempo(tempo=True)
+    elif "temperatura" in trigger:
+        previsao_do_tempo(minmax=True)
+                    
     else:
         mensagem = trigger.strip(hotword)
         cria_audio(mensagem)
@@ -102,14 +108,23 @@ def playlists(album):
     elif album == 'clássica':
         browser.open('https://open.spotify.com/track/2qhB0MjxHZV95QrORat7xe?si=3df219fa831643e6')
 
-def previsao_do_tempo():
+def previsao_do_tempo(tempo=False, minmax=False):
     site = get('https://api.openweathermap.org/data/2.5/weather?id=3448439&APPID=a8ff64034aae9cc740e8268f278f8e41&units=metric&lang=pt')
     clima = site.json()
-    print(json.dumps(clima, indent=4))
+    # print(json.dumps(clima, indent=4))
+    temperatura = math.floor(clima['main']['temp'])  
+    minima = math.floor(clima['main']['temp_min'])  
+    maxima = math.floor(clima['main']['temp_max'])  
+    descricao=clima['weather'][0]['description']
+    if tempo:
+        mensagem = f"Agora está {temperatura} graus com {descricao}"
+    if minmax:
+        mensagem = f"Mínima de {minima} e Máxima de {maxima} graus"
+    cria_audio(mensagem)
 def main():
     while True:
         monitora_audio()
                 
-# main()
-previsao_do_tempo()
+main()
+
   
