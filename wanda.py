@@ -5,16 +5,22 @@ from gtts import gTTS
 from bs4 import BeautifulSoup
 from google.cloud import texttospeech
 import webbrowser as browser
-import json
 import math
+from appscript import app
+import osascript
+
+# Constants
 
 feedback = "feedback"
 hotword = "gata"
+AUDIO_PATH = "audios/"
 
+# Google API Configuration
 import os
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "wanda-python-assistent-be1eab582aff.json"
 
 def monitor_audio():
+    """ Monitors audio to capture the hotword """
     microphone = sr.Recognizer()
     with sr.Microphone() as source:
         while True:
@@ -23,6 +29,7 @@ def monitor_audio():
             try:
                 trigger = microphone.recognize_google_cloud(audio, credentials_json="wanda-python-assistent-be1eab582aff.json", language="pt-BR")
                 trigger = trigger.lower()
+                print("Você disse: " + trigger)
                 print("Você disse: " + trigger)
 
                 if hotword in trigger:
@@ -41,6 +48,7 @@ def respond(audio_file):
     call(["afplay", "audios/" + audio_file + ".mp3"])
 
 def create_audio(message):
+    """ Captures the audio """
     client = texttospeech.TextToSpeechClient()
     input_text = texttospeech.SynthesisInput(text=message)
     voice = texttospeech.VoiceSelectionParams(
@@ -61,12 +69,12 @@ def create_audio(message):
     respond('mensagem')
 
 def execute_commands(trigger):
-    if "notícias" in trigger:
+    if "notícia" in trigger:
         fetch_latest_news()
     elif "toca" in trigger and "nice" in trigger:
         play_playlist("nice")
-    elif "toca" in trigger and "clássica" in trigger:
-        play_playlist("clássica")
+    elif "toca" in trigger and "love me tender" in trigger:
+        play_apple_music("Love me tender")
     elif "tempo agora" in trigger:
         fetch_weather_forecast(tempo=True)
     elif "temperatura" in trigger:
@@ -80,10 +88,24 @@ def execute_commands(trigger):
 def fetch_latest_news():
     site = get('https://news.google.com/rss?hl=pt-BR&gl=BR&ceid=BR:pt')
     news = BeautifulSoup(markup=site.text, features='lxml-xml')
-    for item in news.findAll('item')[:5]:
+    for item in news.findAll('item')[:1]:
         message = item.title.text
         create_audio(message)
+def play_apple_music(song_name):
+    apple_script_code = f'''
+    tell application "Music"
+        activate
+        set songList to (every track of playlist "nice" whose name contains "{song_name}")
 
+        if (count of songList) > 0 then
+            play item 1 of songList
+        else
+            display dialog "Música não encontrada"
+        end if
+    end tell
+    '''
+    osascript.run(apple_script_code)
+    
 def play_playlist(album):
     if album == 'nice':
         browser.open('https://open.spotify.com/track/18GiV1BaXzPVYpp9rmOg0E?si=2b4919a6741445cb')
