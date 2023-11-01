@@ -5,6 +5,7 @@ from gtts import gTTS
 from bs4 import BeautifulSoup
 from google.cloud import texttospeech
 import webbrowser as browser
+import json
 
 
 feedback = "feedback"
@@ -100,9 +101,15 @@ def playlists(album):
         browser.open('https://open.spotify.com/track/18GiV1BaXzPVYpp9rmOg0E?si=2b4919a6741445cb') 
     elif album == 'clássica':
         browser.open('https://open.spotify.com/track/2qhB0MjxHZV95QrORat7xe?si=3df219fa831643e6')
+
+def previsao_do_tempo():
+    site = get('https://api.openweathermap.org/data/2.5/weather?id=3448439&APPID=a8ff64034aae9cc740e8268f278f8e41&units=metric&lang=pt')
+    clima = site.json()
+    print(json.dumps(clima, indent=4))
 def main():
     while True:
         monitora_audio()
                 
-main()
+# main()
+previsao_do_tempo()
   
